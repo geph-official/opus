@@ -10,8 +10,7 @@ import (
 )
 
 /*
-#cgo pkg-config: opus
-#include <opus.h>
+#include <opus/opus.h>
 
 int
 bridge_encoder_set_dtx(OpusEncoder *st, opus_int32 use_dtx)
@@ -29,6 +28,24 @@ int
 bridge_encoder_get_sample_rate(OpusEncoder *st, opus_int32 *sample_rate)
 {
 	return opus_encoder_ctl(st, OPUS_GET_SAMPLE_RATE(sample_rate));
+}
+
+int
+bridge_encoder_set_vbr(OpusEncoder *st, int is_vbr)
+{
+	return opus_encoder_ctl(st, OPUS_SET_VBR(is_vbr));
+}
+
+int
+bridge_encoder_set_inband_fec(OpusEncoder *st, opus_int32 fec)
+{
+	return opus_encoder_ctl(st, OPUS_SET_INBAND_FEC(fec));
+}
+
+int
+bridge_encoder_set_packet_loss_perc(OpusEncoder *st, opus_int32 pct)
+{
+	return opus_encoder_ctl(st, OPUS_SET_PACKET_LOSS_PERC(pct));
 }
 
 
@@ -199,6 +216,41 @@ func (enc *Encoder) EncodeFloat32(pcm []float32, data []byte) (int, error) {
 		return 0, Error(n)
 	}
 	return n, nil
+}
+
+// SetVBR configures the encoder's use of variable bitrate (VBR).
+func (enc *Encoder) SetVBR(vbr bool) error {
+	i := 0
+	if vbr {
+		i = 1
+	}
+	res := C.bridge_encoder_set_vbr(enc.p, C.int(i))
+	if res != C.OPUS_OK {
+		return Error(res)
+	}
+	return nil
+}
+
+// SetFEC configures the encoder's use of forward error correction (FEC).
+func (enc *Encoder) SetFEC(fec bool) error {
+	i := 0
+	if fec {
+		i = 1
+	}
+	res := C.bridge_encoder_set_inband_fec(enc.p, C.opus_int32(i))
+	if res != C.OPUS_OK {
+		return Error(res)
+	}
+	return nil
+}
+
+// SetLossPct configures the encoder's expectation of packet loss, in percent.
+func (enc *Encoder) SetLossPct(pct int) error {
+	res := C.bridge_encoder_set_packet_loss_perc(enc.p, C.opus_int32(pct))
+	if res != C.OPUS_OK {
+		return Error(res)
+	}
+	return nil
 }
 
 // SetDTX configures the encoder's use of discontinuous transmission (DTX).

@@ -10,8 +10,7 @@ import (
 )
 
 /*
-#cgo pkg-config: opus
-#include <opus.h>
+#include <opus/opus.h>
 */
 import "C"
 
@@ -58,48 +57,28 @@ func (dec *Decoder) Init(sample_rate int, channels int) error {
 
 // Decode encoded Opus data into the supplied buffer. On success, returns the
 // number of samples correctly written to the target buffer.
-func (dec *Decoder) Decode(data []byte, pcm []int16) (int, error) {
+func (dec *Decoder) Decode(data []byte, pcm []int16, fec bool) (int, error) {
 	if dec.p == nil {
 		return 0, errDecUninitialized
 	}
-	if len(data) == 0 {
-		return 0, fmt.Errorf("opus: no data supplied")
-	}
 	if len(pcm) == 0 {
 		return 0, fmt.Errorf("opus: target buffer empty")
+	}
+	var ptr *C.uchar
+	if len(data) != 0 {
+		ptr = (*C.uchar)(&data[0])
+	}
+	fc := 0
+	if fec {
+		fc = 1
 	}
 	n := int(C.opus_decode(
 		dec.p,
-		(*C.uchar)(&data[0]),
+		ptr,
 		C.opus_int32(len(data)),
 		(*C.opus_int16)(&pcm[0]),
 		C.int(cap(pcm)),
-		0))
-	if n < 0 {
-		return 0, Error(n)
-	}
-	return n, nil
-}
-
-// Decode encoded Opus data into the supplied buffer. On success, returns the
-// number of samples correctly written to the target buffer.
-func (dec *Decoder) DecodeFloat32(data []byte, pcm []float32) (int, error) {
-	if dec.p == nil {
-		return 0, errDecUninitialized
-	}
-	if len(data) == 0 {
-		return 0, fmt.Errorf("opus: no data supplied")
-	}
-	if len(pcm) == 0 {
-		return 0, fmt.Errorf("opus: target buffer empty")
-	}
-	n := int(C.opus_decode_float(
-		dec.p,
-		(*C.uchar)(&data[0]),
-		C.opus_int32(len(data)),
-		(*C.float)(&pcm[0]),
-		C.int(cap(pcm)),
-		0))
+		C.int(fc)))
 	if n < 0 {
 		return 0, Error(n)
 	}

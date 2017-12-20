@@ -6,8 +6,8 @@ package opus
 
 /*
 // Link opus using pkg-config.
-#cgo pkg-config: opus
-#include <opus.h>
+#cgo LDFLAGS: -lm -Wl,-Bstatic -lopus -Wl,-Bdynamic
+#include <opus/opus.h>
 
 // Access the preprocessor from CGO
 const int CONST_APPLICATION_VOIP = OPUS_APPLICATION_VOIP;

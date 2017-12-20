@@ -21,11 +21,7 @@ func TestDecoderNew(t *testing.T) {
 
 func TestDecoderUnitialized(t *testing.T) {
 	var dec Decoder
-	_, err := dec.Decode(nil, nil)
-	if err != errDecUninitialized {
-		t.Errorf("Expected \"unitialized decoder\" error: %v", err)
-	}
-	_, err = dec.DecodeFloat32(nil, nil)
+	_, err := dec.Decode(nil, nil, false)
 	if err != errDecUninitialized {
 		t.Errorf("Expected \"unitialized decoder\" error: %v", err)
 	}

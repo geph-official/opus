@@ -47,7 +47,7 @@ func TestCodec(t *testing.T) {
 	if err != nil || dec == nil {
 		t.Fatalf("Error creating new decoder: %v", err)
 	}
-	n, err = dec.Decode(data, pcm)
+	n, err = dec.Decode(data, pcm, false)
 	if err != nil {
 		t.Fatalf("Couldn't decode data: %v", err)
 	}
@@ -57,38 +57,6 @@ func TestCodec(t *testing.T) {
 	// Checking the output programmatically is seriously not easy. I checked it
 	// by hand and by ear, it looks fine. I'll just assume the API faithfully
 	// passes error codes through, and that's that.
-}
-
-func TestCodecFloat32(t *testing.T) {
-	// Create bogus input sound
-	const G4 = 391.995
-	const SAMPLE_RATE = 48000
-	const FRAME_SIZE_MS = 60
-	const FRAME_SIZE = SAMPLE_RATE * FRAME_SIZE_MS / 1000
-	pcm := make([]float32, FRAME_SIZE)
-	enc, err := NewEncoder(SAMPLE_RATE, 1, AppVoIP)
-	if err != nil || enc == nil {
-		t.Fatalf("Error creating new encoder: %v", err)
-	}
-	addSineFloat32(pcm, SAMPLE_RATE, G4)
-	data := make([]byte, 1000)
-	n, err := enc.EncodeFloat32(pcm, data)
-	if err != nil {
-		t.Fatalf("Couldn't encode data: %v", err)
-	}
-	dec, err := NewDecoder(SAMPLE_RATE, 1)
-	if err != nil || dec == nil {
-		t.Fatalf("Error creating new decoder: %v", err)
-	}
-	// TODO: Uh-oh.. it looks like I forgot to put a data = data[:n] here, yet
-	// the test is not failing. Why?
-	n, err = dec.DecodeFloat32(data, pcm)
-	if err != nil {
-		t.Fatalf("Couldn't decode data: %v", err)
-	}
-	if len(pcm) != n {
-		t.Fatalf("Length mismatch: %d samples in, %d out", len(pcm), n)
-	}
 }
 
 func TestStereo(t *testing.T) {
@@ -122,7 +90,7 @@ func TestStereo(t *testing.T) {
 		t.Fatalf("Couldn't encode data: %v", err)
 	}
 	data = data[:n]
-	n, err = dec.Decode(data, pcm)
+	n, err = dec.Decode(data, pcm, false)
 	if err != nil {
 		t.Fatal("Couldn't decode data: %v", err)
 	}
